@@ -72,6 +72,7 @@ rule lex = parse
             | "fun" -> FUN 
             | "wallet" -> WALLET
             | "asset" -> ASSET
+            | "transac" -> TRANSAC
             (* | "exch" -> EXCH *)
             | "if" -> IF
             | "then" -> THEN

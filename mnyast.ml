@@ -8,7 +8,7 @@ type expr =
   | EIdent of string
   | EAff of string * expr * expr
   | EIf of (expr * expr * expr)
-  | EBuy of (string * string * string)
+  | EBuy of string * expr * string * string * string * expr
   | EBinop of (string * expr * expr)
   | EFun of (string * expr)
   | EDot of (expr * string)
@@ -27,8 +27,8 @@ let rec print oc = function
         Printf.fprintf oc "(%a = %a)" print (EIdent x) print e
   | EIf (test,e1,e2) -> 
       Printf.fprintf oc "(if %a then %a else %a)"  print test print e1 print e2
-  | EBuy (a1, wallet, a2) ->
-      Printf.fprintf oc "(buy %a with %a through %a)" print (EString a1) print (EString wallet) print (EString a2)
+  | EBuy (t, amnt1, a1, wallet, a2, next) ->
+      Printf.fprintf oc "(buy %a %a with %a through %a)" print (amnt1) print (EString a1) print (EString wallet) print (EString a2)
   | EBinop (op, e1, e2) -> 
       Printf.fprintf oc "(%a %s %a)" print e1 op print e2
   | EFun (f, e) -> 

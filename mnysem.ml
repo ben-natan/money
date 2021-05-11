@@ -7,6 +7,8 @@ type mnyval =
   | Assetval of (string * int) list
   (* mettre une asset val GEN de sorte qu'elles soient toutes définies à partir de celle là *)
   | Walletval of (string * int) list
+  | Transacval of {_success: bool; _from: string; _to: string; _amount: int; _price: int}
+  (* | Transacval of (string * ) *)
   (* | Funval of { param: string; body: expr; env: environnement } *)
 
 and environnement = (string * mnyval) list
@@ -35,14 +37,22 @@ let rec add_to_asset a new_a v rho = match rho with
 | [] -> raise (Failure "asset not found")
 ;;
 
+let rec find_and_add x e l = match l with
+|(u,v)::q -> if u = x then (u,v+e)::q else (u,v)::(find_and_add x e q)
+|[] -> raise (Failure "Not found")
+;;
 
+let rec add_to_wallet w x v rho = match rho with
+| (t,h)::q -> if t = w then (
+              match h with
+              | Intval _ | Boolval _ | Stringval _ | Assetval _-> raise (Failure "is not wallet")
+              | Walletval r -> let new_wallet = find_and_add x v r in
+                  (t, Walletval(new_wallet))::q
+              ) else 
+                (t,h)::(add_to_wallet w x v q)
 
-
-
-
-
-
-
+| [] -> raise (Failure "wallet not found")
+;;
 
 
 let rec printval = function 
@@ -51,6 +61,7 @@ let rec printval = function
   | Stringval s -> Printf.printf "\"%s\"" s
   | Walletval w -> print_wallet w
   | Assetval a -> print_wallet a
+  | Transacval t -> Printf.printf "{success: %b, from: %s, to: %s, price: %d, amount: %d}" t._success t._from t._to t._price t._amount
   (* | Funval _ -> Printf.printf "<fun>" *)
 ;;
 
@@ -92,9 +103,6 @@ let rec eval e rho = match e with
 
               | _ -> raise (Failure ".. is not an asset")
             )
-
-            
-
       | _ -> raise (Failure "Asset value must be int")
     )
   | EIf (test, e1, e2) -> (
@@ -123,9 +131,36 @@ let rec eval e rho = match e with
     )
   )
 
-  | EBuy (a1, wallet, a2) -> 
-    raise (Failure "Pas encore implémenté: BUY")
-
+  | EBuy (t, amnt_a1 ,a1, w, a2, next) -> (
+    (* On cherche wallet, et on crée la transacval
+       puis on redonne la main *)
+    match eval amnt_a1 rho with
+      | Intval amnt_a1_end -> (
+          match lookup w rho with 
+          | Walletval wallet ->
+              (
+              match lookup a2 rho with 
+                | Assetval asset2 -> (
+                    let amnt_a2 = get_asset_val wallet a2 in
+                    let val_a2 = get_asset_val asset2 a1 in
+                    Printf.printf "amnt_a2: %d, val_a2: %d, amnt_a1_end: %d" amnt_a2 val_a2 amnt_a1_end;
+                    if (amnt_a2 * val_a2 >= amnt_a1_end) then
+                      (* Transaction réussie *)
+                      let new_rho = add_to_wallet w a1 amnt_a1_end rho in
+                      let almost_done_rho = add_to_wallet w a2 (amnt_a2 * val_a2) new_rho in
+                      let final_rho = extend almost_done_rho t (Transacval {_success= true; _from= a2; _to= a1; _amount= amnt_a1_end; _price= amnt_a2}) in
+                      eval next final_rho
+                    else
+                      (* Transaction pas réussie *)
+                      let final_rho = extend rho t (Transacval {_success= false; _from= a2; _to= a1; _amount= amnt_a1_end; _price= amnt_a2}) in
+                      eval next final_rho
+                    )
+                | _ -> raise (Failure "Asset 2 non reconnu")
+              )
+          | _ -> raise (Failure "Wallet non reconnu") 
+        )
+      | _ -> raise (Failure "Amount not int")
+    )
   | EBinop (op, e1, e2) -> (
       match (eval e1 rho, eval e2 rho) with
       | (Intval n1, Intval n2) -> (
