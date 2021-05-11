@@ -1,0 +1,1 @@
+asset EUR; asset USD = 2 EUR; wallet p1 = {EUR: 10, USD: 20}; p1.EUR;;
