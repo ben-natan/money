@@ -1,10 +1,10 @@
 type expr = 
-  | EInt of int 
+  | EFloat of float 
   | EBool of bool
   | EString of string
   | EAsset of string * expr * string * expr
   (* | EExch of EAsset * EAsset  *)
-  | EWallet of string * ((string * int) list) * expr
+  | EWallet of string * ((string * float) list) * expr
   | EIdent of string
   | EAff of string * expr * expr
   | EIf of (expr * expr * expr)
@@ -16,7 +16,7 @@ type expr =
 
 
 let rec print oc = function 
-  | EInt n -> Printf.fprintf oc "%d" n
+  | EFloat n -> Printf.fprintf oc "%f" n
   | EBool true -> Printf.fprintf oc "true"
   | EBool false -> Printf.fprintf oc "false"
   | EString s -> Printf.fprintf oc "\"%s\"" s

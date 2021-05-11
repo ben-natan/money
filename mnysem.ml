@@ -1,13 +1,13 @@
 open Mnyast;;
 
 type mnyval = 
-  | Intval of int
+  | Floatval of float
   | Boolval of bool
   | Stringval of string
-  | Assetval of (string * int) list
+  | Assetval of (string * float) list
   (* mettre une asset val GEN de sorte qu'elles soient toutes définies à partir de celle là *)
-  | Walletval of (string * int) list
-  | Transacval of {_success: bool; _from: string; _to: string; _amount: int; _price: int}
+  | Walletval of (string * float) list
+  | Transacval of {_success: bool; _from: string; _to: string; _amount: float; _price: float}
   (* | Transacval of (string * ) *)
   (* | Funval of { param: string; body: expr; env: environnement } *)
 
@@ -15,7 +15,7 @@ and environnement = (string * mnyval) list
 ;;
 
 let rec print_wallet l = match l with
-| (a,b)::q -> Printf.printf "%s:%d" a b; print_wallet q
+| (a,b)::q -> Printf.printf "%s:%f ; " a b; print_wallet q
 | [] -> Printf.printf ""
 ;; 
 
@@ -29,7 +29,7 @@ let rec get_asset_val l x = match l with
 let rec add_to_asset a new_a v rho = match rho with
 | (t,h)::q -> if t = a then (
                 match h with 
-                | Intval _ | Boolval _ | Stringval _ -> raise (Failure "is not asset")
+                | Floatval _ | Boolval _ | Stringval _ | Transacval _-> raise (Failure "is not asset")
                 | Assetval r -> (t,Assetval((new_a,v)::r))::q
                 | Walletval _ -> raise (Failure "wallet not yet implemented")
               ) else 
@@ -38,14 +38,14 @@ let rec add_to_asset a new_a v rho = match rho with
 ;;
 
 let rec find_and_add x e l = match l with
-|(u,v)::q -> if u = x then (u,v+e)::q else (u,v)::(find_and_add x e q)
+|(u,v)::q -> if u = x then (u,v+.e)::q else (u,v)::(find_and_add x e q)
 |[] -> raise (Failure "Not found")
 ;;
 
 let rec add_to_wallet w x v rho = match rho with
 | (t,h)::q -> if t = w then (
               match h with
-              | Intval _ | Boolval _ | Stringval _ | Assetval _-> raise (Failure "is not wallet")
+              | Floatval _ | Boolval _ | Stringval _ | Assetval _ | Transacval _-> raise (Failure "is not wallet")
               | Walletval r -> let new_wallet = find_and_add x v r in
                   (t, Walletval(new_wallet))::q
               ) else 
@@ -56,12 +56,12 @@ let rec add_to_wallet w x v rho = match rho with
 
 
 let rec printval = function 
-  | Intval n -> Printf.printf "%d" n 
+  | Floatval n -> Printf.printf "%f" n 
   | Boolval b -> Printf.printf "%s" (if b then "true" else "false")
   | Stringval s -> Printf.printf "\"%s\"" s
   | Walletval w -> print_wallet w
   | Assetval a -> print_wallet a
-  | Transacval t -> Printf.printf "{success: %b, from: %s, to: %s, price: %d, amount: %d}" t._success t._from t._to t._price t._amount
+  | Transacval t -> Printf.printf "{success: %b, from: %s, to: %s, price: %f, amount: %f}" t._success t._from t._to t._price t._amount
   (* | Funval _ -> Printf.printf "<fun>" *)
 ;;
 
@@ -78,7 +78,7 @@ let lookup x rho =
 
 
 let rec eval e rho = match e with
-  | EInt n -> Intval n
+  | EFloat n -> Floatval n
   | EBool b -> Boolval b 
   | EString s -> Stringval s
   | EIdent x -> lookup x rho
@@ -89,7 +89,7 @@ let rec eval e rho = match e with
   | EAsset (x, v, a, next) ->
     let v_end = eval v rho in (
       match v_end with
-      | Intval n ->
+      | Floatval n ->
           let new_rho = extend rho x (Assetval [(a,n)]) in 
           if a = "GEN" then
             eval next new_rho
@@ -98,7 +98,7 @@ let rec eval e rho = match e with
             (
               match lookup a new_rho with
               | Assetval _ -> 
-                let final_rho = add_to_asset a x (-n) (* à remplacer par 1/v *) new_rho in
+                let final_rho = add_to_asset a x (1./.n) (* à remplacer par 1/v *) new_rho in
                 eval next final_rho
 
               | _ -> raise (Failure ".. is not an asset")
@@ -119,15 +119,16 @@ let rec eval e rho = match e with
     let a_end = eval a rho in
     (
       match a_end with
-      | Intval n -> raise (Failure "Can't access type int property")
+      | Floatval n -> raise (Failure "Can't access type int property")
       | Boolval b -> raise (Failure "Can't access type bool property")
       | Stringval s -> raise (Failure "Can't access type string property")
       | Assetval l -> (
-          let value = get_asset_val l x in Intval(value)
+          let value = get_asset_val l x in Floatval(value)
         )
       | Walletval l -> (
-          let value = get_asset_val l x in Intval(value)
+          let value = get_asset_val l x in Floatval(value)
         )
+      | Transacval t -> raise (Failure "not yet implemented transac")
     )
   )
 
@@ -135,7 +136,7 @@ let rec eval e rho = match e with
     (* On cherche wallet, et on crée la transacval
        puis on redonne la main *)
     match eval amnt_a1 rho with
-      | Intval amnt_a1_end -> (
+      | Floatval amnt_a1_end -> (
           match lookup w rho with 
           | Walletval wallet ->
               (
@@ -143,11 +144,10 @@ let rec eval e rho = match e with
                 | Assetval asset2 -> (
                     let amnt_a2 = get_asset_val wallet a2 in
                     let val_a2 = get_asset_val asset2 a1 in
-                    Printf.printf "amnt_a2: %d, val_a2: %d, amnt_a1_end: %d" amnt_a2 val_a2 amnt_a1_end;
-                    if (amnt_a2 * val_a2 >= amnt_a1_end) then
+                    if (amnt_a2 *. val_a2 >= amnt_a1_end) then
                       (* Transaction réussie *)
                       let new_rho = add_to_wallet w a1 amnt_a1_end rho in
-                      let almost_done_rho = add_to_wallet w a2 (amnt_a2 * val_a2) new_rho in
+                      let almost_done_rho = add_to_wallet w a2 (-1. *. amnt_a1_end /. val_a2) new_rho in
                       let final_rho = extend almost_done_rho t (Transacval {_success= true; _from= a2; _to= a1; _amount= amnt_a1_end; _price= amnt_a2}) in
                       eval next final_rho
                     else
@@ -163,12 +163,12 @@ let rec eval e rho = match e with
     )
   | EBinop (op, e1, e2) -> (
       match (eval e1 rho, eval e2 rho) with
-      | (Intval n1, Intval n2) -> (
+      | (Floatval n1, Floatval n2) -> (
           match op with 
-          | "+" -> Intval (n1 + n2)
-          | "-" -> Intval (n1 - n2)
-          | "*" -> Intval (n1 * n2)
-          | "/" -> Intval (n1 / n2)
+          | "+" -> Floatval (n1 +. n2)
+          | "-" -> Floatval (n1 -. n2)
+          | "*" -> Floatval (n1 *. n2)
+          | "/" -> Floatval (n1 /. n2)
           | "=" -> Boolval (n1 = n2)
           | "<" -> Boolval (n1 < n2)
           | "<=" -> Boolval (n1 <= n2) 
@@ -189,7 +189,7 @@ let rec eval e rho = match e with
       )
       | _ -> raise (Failure (Printf.sprintf "Opérandes invalides pour l'opérateur %s" op))
   )
-  (* | EFun (f, e) -> Funval { param = f; body = e; env = rho} *)
+  | EFun (f, e) -> raise (Failure "not yet implemented: fun")
   
 ;;
 

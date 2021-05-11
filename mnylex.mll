@@ -62,7 +62,7 @@ rule lex = parse
     (' ' | '\t' | newline )
         { lex lexbuf }
     | ['0'-'9']+ as lxm 
-        { INT(int_of_string lxm)}
+        { FLOAT(float_of_string lxm)}
     | [ 'A'-'Z' 'a'-'z' ] [ 'A'-'Z' 'a'-'z' ]* as lxm
         { match lxm with 
             | "buy" -> BUY

@@ -2,7 +2,7 @@
 open Mnyast ;;
 %}
 
-%token <int> INT
+%token <float> FLOAT
 %token <string> IDENT
 %token TRUE FALSE
 %token <string> STRING
@@ -27,7 +27,7 @@ expr:
      TRANSAC IDENT EQUAL BUY expr IDENT WITH IDENT THROUGH IDENT SEMICOLON expr { EBuy ($2, $5, $6, $8, $10, $12) } 
     | VAL IDENT EQUAL expr SEMICOLON expr { EAff ($2, $4, $6) }
     | ASSET IDENT EQUAL expr IDENT SEMICOLON expr { EAsset($2, $4, $5, $7) }
-    | ASSET IDENT SEMICOLON expr { EAsset($2, EInt(1), "GEN", $4) }
+    | ASSET IDENT SEMICOLON expr { EAsset($2, EFloat(1.), "GEN", $4) }
     | WALLET IDENT EQUAL wallet SEMICOLON expr { EWallet ($2, $4, $6) }
     | IF expr THEN expr ELSE expr   { EIf($2, $4, $6) }
     // | FUN IDENT ARROW expr { EFun($2, $4) }
@@ -44,8 +44,8 @@ wallet:
 ;
 
 wallet_assets:
-    IDENT COLON INT COMMA wallet_assets    { ($1,$3)::$5 }
-    | IDENT COLON INT { ($1,$3)::[] }
+    IDENT COLON FLOAT COMMA wallet_assets    { ($1,$3)::$5 }
+    | IDENT COLON FLOAT { ($1,$3)::[] }
 ;
 
 
@@ -60,6 +60,7 @@ arith_expr:
     | arith_expr MINUS arith_expr    { EBinop ("-", $1, $3) }
     | arith_expr MULT arith_expr    { EBinop ("*", $1, $3) }
     | arith_expr DIV arith_expr    { EBinop ("/", $1, $3) }
+    | arith_expr DOT IDENT    { EDot($1, $3) }
     | application                   { $1 } 
 ;
 
@@ -68,11 +69,11 @@ application:
 ;
 
 atom: 
-    INT       { EInt ($1) }
+    FLOAT       { EFloat ($1) }
     | TRUE    { EBool (true) }
     | FALSE   { EBool (false) }
     | STRING  { EString ($1) }
     | IDENT   { EIdent ($1) }
     | LPAREN expr RPAREN   { $2 }
-    | expr DOT IDENT  { EDot($1, $3) }
+    
 ;
