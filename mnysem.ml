@@ -22,6 +22,29 @@ let rec get_asset_val l x = match l with
 | [] -> raise (Failure "Asset val not found")
 ;;
 
+
+(* Ajoute la valeur v de new_a à a *)
+let rec add_to_asset a new_a v rho = match rho with
+| (t,h)::q -> if t = a then (
+                match h with 
+                | Intval _ | Boolval _ | Stringval _ -> raise (Failure "is not asset")
+                | Assetval r -> (t,Assetval((new_a,v)::r))::q
+                | Walletval _ -> raise (Failure "wallet not yet implemented")
+              ) else 
+                 (t,h)::(add_to_asset a new_a v q)
+| [] -> raise (Failure "asset not found")
+;;
+
+
+
+
+
+
+
+
+
+
+
 let rec printval = function 
   | Intval n -> Printf.printf "%d" n 
   | Boolval b -> Printf.printf "%s" (if b then "true" else "false")
@@ -56,23 +79,20 @@ let rec eval e rho = match e with
     let v_end = eval v rho in (
       match v_end with
       | Intval n ->
+          let new_rho = extend rho x (Assetval [(a,n)]) in 
           if a = "GEN" then
-            let new_rho = extend rho x (Assetval [(a,n)]) in 
             eval next new_rho
-          
-          else 
+          else
+            (* On ajoute la correspondance à l'autre asset aussi *)
             (
-              match lookup a rho with
-              | Assetval asset -> let a_value = get_asset_val asset "GEN" in
-                            (
-                              match v with
-                              | EInt n -> let new_rho = extend rho x (Assetval [("GEN",a_value * n);(a,n)]) in 
-                                            eval next new_rho
-                              | _ -> raise (Failure "asset value is not int")
-                            )
-                            
-              | _ -> raise (Failure "is not an asset")
+              match lookup a new_rho with
+              | Assetval _ -> 
+                let final_rho = add_to_asset a x (-n) (* à remplacer par 1/v *) new_rho in
+                eval next final_rho
+
+              | _ -> raise (Failure ".. is not an asset")
             )
+
             
 
       | _ -> raise (Failure "Asset value must be int")
