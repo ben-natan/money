@@ -9,7 +9,7 @@ type mnyval =
   | Walletval of (string * float) list
   | Transacval of {_success: bool; _from: string; _to: string; _amount: float; _price: float}
   (* | Transacval of (string * ) *)
-  (* | Funval of { param: string; body: expr; env: environnement } *)
+  | Funval of { param: string; body: expr; env: environnement }
 
 and environnement = (string * mnyval) list
 ;;
@@ -55,6 +55,31 @@ let rec add_to_wallet w x v rho = match rho with
 ;;
 
 
+let rec add_val_to_wallet vnom vval w = match w with
+| (hnom, hval)::q -> if hnom = vnom then (hnom, hval +. vval)::q
+                     else (hnom, hval)::(add_val_to_wallet vnom vval q)
+| [] -> [(vnom, vval)]
+
+let rec add_wallets w1 w2 = match w1 with
+| [] -> w2
+| (vnom, vval)::q -> let new_w2 = add_val_to_wallet vnom vval w2 in add_wallets q new_w2
+
+let rec sub_val_to_wallet vnom vval w = match w with
+| (hnom, hval)::q -> if hnom = vnom then (hnom, vval -. hval)::q
+                     else (hnom, hval)::(sub_val_to_wallet vnom vval q)
+| [] -> [(vnom, vval)]
+
+let rec sub_wallets w1 w2 = match w1 with
+| [] -> w2
+| (vnom, vval)::q -> let new_w2 = sub_val_to_wallet vnom vval w2 in sub_wallets q new_w2
+
+
+
+let rec k_mult_wallet f w = match w with
+| [] -> []
+| (vnom, vval)::q -> (vnom, f*.vval)::(k_mult_wallet f q)
+
+
 let rec printval = function 
   | Floatval n -> Printf.printf "%f" n 
   | Boolval b -> Printf.printf "%s" (if b then "true" else "false")
@@ -98,7 +123,7 @@ let rec eval e rho = match e with
             (
               match lookup a new_rho with
               | Assetval _ -> 
-                let final_rho = add_to_asset a x (1./.n) (* à remplacer par 1/v *) new_rho in
+                let final_rho = add_to_asset a x (1./.n) new_rho in
                 eval next final_rho
 
               | _ -> raise (Failure ".. is not an asset")
@@ -187,9 +212,33 @@ let rec eval e rho = match e with
           | "+" -> Stringval (s1 ^ s2)
           | _ -> raise (Failure (Printf.sprintf "Opérateur sur string non reconnu= %s" op))
       )
+      | (Walletval w1, Walletval w2) -> (
+          match op with
+          | "+" -> Walletval (add_wallets w1 w2)
+          | "-" -> Walletval (sub_wallets w1 w2)
+      )
+      | (Walletval w, Floatval f) -> (
+          match op with 
+          | "*" -> Walletval ( k_mult_wallet f w)
+          | "/" -> Walletval ( k_mult_wallet (1./.f) w)
+      )
+      | (Floatval f, Walletval w) -> (
+          match op with
+          | "*" -> Walletval ( k_mult_wallet f w)
+          | "/" -> Walletval ( k_mult_wallet (1./.f) w)
+      )
       | _ -> raise (Failure (Printf.sprintf "Opérandes invalides pour l'opérateur %s" op))
   )
-  | EFun (f, e) -> raise (Failure "not yet implemented: fun")
+  | EFun (p, e) -> Funval {param = p; body = e; env = rho}
+  | EApp (e1, e2) -> (
+        match (eval e1 rho, eval e2 rho) with
+        | (Funval {param; body; env}, v2) -> 
+            let rho1 = extend env param v2 in 
+            eval body rho1
+        | _ -> raise (Failure "pas une fonction")
+  )
+
+  
   
 ;;
 

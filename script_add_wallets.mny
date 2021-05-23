@@ -1,0 +1,13 @@
+wallet w = {EUR: 10, USD: 20}; 
+wallet r = {EUR: 30, USD: 10, ISH:10}; 
+r+w;;
+
+
+wallet w = {EUR: 10, USD: 20}; 
+3*w;;
+
+wallet w = {EUR: 10, USD: 20}; 
+w*3;;
+
+wallet w = {EUR: 10, USD: 20}; 
+w/2;;

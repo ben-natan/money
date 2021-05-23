@@ -12,6 +12,7 @@ type expr =
   | EBinop of (string * expr * expr)
   | EFun of (string * expr)
   | EDot of (expr * string)
+  | EApp of expr * expr
 ;;
 
 
@@ -35,5 +36,7 @@ let rec print oc = function
       Printf.printf "Fonction"
   | EDot (a, x) -> 
       Printf.printf "Dot"
+  | EApp (e1, e2) ->
+      Printf.printf "App"
   (* | _ -> Printf.printf "salut" *)
 

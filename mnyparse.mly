@@ -1,5 +1,6 @@
 %{
 open Mnyast ;;
+
 %}
 
 %token <float> FLOAT
@@ -11,9 +12,11 @@ open Mnyast ;;
 %token VAL FUN WALLET ASSET TRANSAC
 %token IF THEN ELSE
 %token BUY WITH THROUGH
+%token OF
 %left EQUAL GREATER SMALLER GREATEREQUAL SMALLEREQUAL
 %left PLUS MINUS
 %left MULT DIV
+%left DOT
 
 %start main
 %type <Mnyast.expr> main
@@ -24,20 +27,16 @@ main: expr TWOSEMICOLONS {$1} | TWOSEMICOLONS main {$2}
 ;
 
 expr:
-     TRANSAC IDENT EQUAL BUY expr IDENT WITH IDENT THROUGH IDENT SEMICOLON expr { EBuy ($2, $5, $6, $8, $10, $12) } 
+     TRANSAC IDENT EQUAL BUY expr OF IDENT WITH IDENT THROUGH IDENT SEMICOLON expr { EBuy ($2, $5, $7, $9, $11, $13) } 
     | VAL IDENT EQUAL expr SEMICOLON expr { EAff ($2, $4, $6) }
-    | ASSET IDENT EQUAL expr IDENT SEMICOLON expr { EAsset($2, $4, $5, $7) }
+    | ASSET IDENT EQUAL expr OF IDENT SEMICOLON expr { EAsset($2, $4, $6, $8) }
     | ASSET IDENT SEMICOLON expr { EAsset($2, EFloat(1.), "GEN", $4) }
     | WALLET IDENT EQUAL wallet SEMICOLON expr { EWallet ($2, $4, $6) }
     | IF expr THEN expr ELSE expr   { EIf($2, $4, $6) }
-    // | FUN IDENT ARROW expr { EFun($2, $4) }
+    | FUN IDENT ARROW expr { EFun($2, $4) }
     | arith_expr   { $1 }
 ;
 
-// seqident:
-//   IDENT seqident  { $1 :: $2 }
-// | /* rien */      { [] }
-// ;
 
 wallet:
     | LBRACK wallet_assets RBRACK    { $2 }
@@ -65,7 +64,9 @@ arith_expr:
 ;
 
 application: 
-    atom     { $1 }
+    application atom { EApp ($1, $2) }
+    | atom     { $1 }
+    
 ;
 
 atom: 

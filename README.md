@@ -3,11 +3,11 @@
 
 - ~~Changer les int en float (et le -n en 1/n)~~
 
-- Boucle while (boucle for = boucle while intelligente)
+- ~~Boucle while (boucle for = boucle while intelligente)~~
 
 - Régler les shift/reduce
 
-- Fonctions
+- ~~Fonctions~~
 
 - Opérateurs sur les assets
 

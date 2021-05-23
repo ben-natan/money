@@ -65,7 +65,7 @@ rule lex = parse
         { FLOAT(float_of_string num)}
     | ['0'-'9']+ as num 
         { FLOAT(float_of_string num)}
-    | [ 'A'-'Z' 'a'-'z' ] [ 'A'-'Z' 'a'-'z' ]* as lxm
+    | [ 'A'-'Z' 'a'-'z' '_' ] [ 'A'-'Z' 'a'-'z' '_' ]* as lxm
         { match lxm with 
             | "buy" -> BUY
             | "with" -> WITH
@@ -76,6 +76,7 @@ rule lex = parse
             | "asset" -> ASSET
             | "transac" -> TRANSAC
             (* | "exch" -> EXCH *)
+            | "of" -> OF
             | "if" -> IF
             | "then" -> THEN
             | "else" -> ELSE 
