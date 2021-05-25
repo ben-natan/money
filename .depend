@@ -1,0 +1,66 @@
+infer.cmo : \
+    unify.cmi \
+    types.cmi \
+    subst.cmi \
+    mnyast.cmo
+infer.cmx : \
+    unify.cmx \
+    types.cmx \
+    subst.cmx \
+    mnyast.cmx
+mnyast.cmo :
+mnyast.cmx :
+mnylex.cmo : \
+    mnyparse.cmi
+mnylex.cmx : \
+    mnyparse.cmx
+mnyloop.cmo : \
+    unify.cmi \
+    types.cmi \
+    mnysem.cmo \
+    mnyparse.cmi \
+    mnylex.cmo \
+    infer.cmo
+mnyloop.cmx : \
+    unify.cmx \
+    types.cmx \
+    mnysem.cmx \
+    mnyparse.cmx \
+    mnylex.cmx \
+    infer.cmx
+mnyparse.cmo : \
+    mnyast.cmo \
+    mnyparse.cmi
+mnyparse.cmx : \
+    mnyast.cmx \
+    mnyparse.cmi
+mnyparse.cmi : \
+    mnyast.cmo
+mnysem.cmo : \
+    mnyast.cmo
+mnysem.cmx : \
+    mnyast.cmx
+subst.cmo : \
+    types.cmi \
+    subst.cmi
+subst.cmx : \
+    types.cmx \
+    subst.cmi
+subst.cmi : \
+    types.cmi
+types.cmo : \
+    types.cmi
+types.cmx : \
+    types.cmi
+types.cmi :
+unify.cmo : \
+    types.cmi \
+    subst.cmi \
+    unify.cmi
+unify.cmx : \
+    types.cmx \
+    subst.cmx \
+    unify.cmi
+unify.cmi : \
+    types.cmi \
+    subst.cmi

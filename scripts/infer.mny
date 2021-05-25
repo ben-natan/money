@@ -1,0 +1,5 @@
+
+val r = 1;
+
+val x = if false then r else "hehe";
+x;;

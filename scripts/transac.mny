@@ -2,4 +2,4 @@ asset EUR;
 asset USD = 0.8 of EUR; 
 wallet w = {EUR: 10, USD: 20}; 
 transac t = buy 2 of USD with w through EUR;
-w;;
+t;;

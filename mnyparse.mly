@@ -34,7 +34,7 @@ expr:
     | WALLET IDENT EQUAL wallet SEMICOLON expr { EWallet ($2, $4, $6) }
     | IF expr THEN expr ELSE expr   { EIf($2, $4, $6) }
     | FUN IDENT ARROW expr { EFun($2, $4) }
-    | arith_expr   { $1 }
+    | arith_expr   { $1 } 
 ;
 
 

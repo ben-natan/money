@@ -10,6 +10,7 @@ type expr =
   | EIf of (expr * expr * expr)
   | EBuy of string * expr * string * string * string * expr
   | EBinop of (string * expr * expr)
+  | EMonop of string * expr
   | EFun of (string * expr)
   | EDot of (expr * string)
   | EApp of expr * expr
@@ -32,11 +33,14 @@ let rec print oc = function
       Printf.fprintf oc "(buy %a %a with %a through %a)" print (amnt1) print (EString a1) print (EString wallet) print (EString a2)
   | EBinop (op, e1, e2) -> 
       Printf.fprintf oc "(%a %s %a)" print e1 op print e2
+  | EMonop (op, e) ->
+      Printf.fprintf oc "(%a %s)" print e op 
   | EFun (f, e) -> 
       Printf.printf "Fonction"
   | EDot (a, x) -> 
       Printf.printf "Dot"
   | EApp (e1, e2) ->
       Printf.printf "App"
+
   (* | _ -> Printf.printf "salut" *)
 

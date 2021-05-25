@@ -1,55 +1,48 @@
-# Compilateurs
-OCC = ocamlopt
-OCL = ocamllex
-OCY = ocamlyacc
+CAMLC=$(BINDIR)ocamlc
+CAMLDEP=$(BINDIR)ocamldep
+CAMLLEX=$(BINDIR)ocamllex
+CAMLYACC=$(BINDIR)ocamlyacc
+# COMPFLAGS=-w A-4-6-9 -warn-error A -g
+COMPFLAGS=
 
-# Fichiers compilés, à produire pour fabriquer l'exécutable
-OBJS = mnylex.cmx mnyast.cmx mnyparse.cmx mnysem.cmx mnyloop.cmx
+EXEC = mnyloop
+SOURCES = mnyast.ml mnysem.ml types.ml subst.ml unify.ml infer.ml mnyloop.ml 
+GENERATED = mnylex.ml mnyparse.ml mnyparse.mli
+MLIS = types.mli subst.mli unify.mli
+OBJS = $(GENERATED:.ml=.cmo) $(SOURCES:.ml=.cmo)
 
-mnyloop: $(OBJS)
-	$(OCC) -o $@ $(OBJS)
+# Building the world
+all: $(EXEC)
 
-# Les cibles auxiliaires
-# (note: une cible avec  « :: » peut être étendue par la suite)
-clean::
-	/bin/rm -f *~ *.cmo *.cmx *.o *.cmi *.cmt *.cmti \
-                   mnyparse.ml mnyparse.mli mnylex.ml mnyloop
+$(EXEC): $(OBJS)
+	$(CAMLC) $(COMPFLAGS) $(OBJS) -o $(EXEC)
 
+.SUFFIXES:
+.SUFFIXES: .ml .mli .cmo .cmi .cmx
+.SUFFIXES: .mll .mly
 
-# Les dépendances
-mnyloop.cmx: mnyast.cmi mnyparse.cmi mnylex.cmi
-
-mnylex.cmx: mnyparse.cmi
-
-mnyparse.cmi: mnyast.cmi
-
-mnyparse.cmx: mnyast.cmi
-
-mnysem.cmx: mnyast.cmi
-
-mnyparse.mli: mnyparse.ml
-
-mnyast.cmi: mnyast.cmx
-
-mnylex.cmi: mnylex.cmx
-
-# Générations de fichiers compilés selon leurs extensions (suffixes) :
-# .ext1.ext2 : comment passer de foo.ext1 à foo.ext2
-.ml.cmx:
-	$(OCC) -c $<
+.ml.cmo:
+	$(CAMLC) $(COMPFLAGS) -c $<
 
 .mli.cmi:
-	$(OCC) -c $<
+	$(CAMLC) $(COMPFLAGS) -c $<
 
 .mll.ml:
-	$(OCL) $<
+	$(CAMLLEX) $<
 
 .mly.ml:
-	$(OCY) $<
+	$(CAMLYACC) $<
 
-# Déclaration de suffixes :
-#  - d'abord, on supprime les suffixes connus de make (.c, .o, etc.)
-.SUFFIXES:
+# Clean up
+clean:
+	rm -f *.cm[io] *.cmx *~ .*~ *.o
+	rm -f parser.mli
+	rm -f $(GENERATED)
+	rm -f $(EXEC)
 
-# - ensuite, on déclare nos suffixes
-.SUFFIXES: .ml .mli .mly .mll .cmx .cmi
+# Dependencies
+depend: $(SOURCES) $(GENERATED) $(MLIS)
+	$(CAMLDEP) $(SOURCES) $(GENERATED) $(MLIS) > .depend
+
+include .depend
+
