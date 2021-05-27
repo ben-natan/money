@@ -27,24 +27,33 @@ main: expr TWOSEMICOLONS {$1} | TWOSEMICOLONS main {$2}
 ;
 
 expr:
-     TRANSAC IDENT EQUAL BUY expr OF IDENT WITH IDENT THROUGH IDENT SEMICOLON expr { EBuy ($2, $5, $7, $9, $11, $13) } 
     | VAL IDENT EQUAL expr SEMICOLON expr { EAff ($2, $4, $6) }
-    | ASSET IDENT EQUAL expr OF IDENT SEMICOLON expr { EAsset($2, $4, $6, $8) }
-    | ASSET IDENT SEMICOLON expr { EAsset($2, EFloat(1.), "GEN", $4) }
-    | WALLET IDENT EQUAL wallet SEMICOLON expr { EWallet ($2, $4, $6) }
     | IF expr THEN expr ELSE expr   { EIf($2, $4, $6) }
     | FUN IDENT ARROW expr { EFun($2, $4) }
     | arith_expr   { $1 } 
+    | ASSET asset { $2 }
+    | WALLET wallet { $2 }
+    | BUY transac { $2 }
 ;
 
+asset :
+    expr OF IDENT    { EAsset($1, $3) }
+    | expr           { EAsset($1, "GEN") }
+    |                { EAsset(EFloat(1.), "GEN") }
+;
 
 wallet:
-    | LBRACK wallet_assets RBRACK    { $2 }
+    | LBRACK wallet_assets RBRACK    { EWallet($2) }
 ;
 
 wallet_assets:
-    IDENT COLON FLOAT COMMA wallet_assets    { ($1,$3)::$5 }
-    | IDENT COLON FLOAT { ($1,$3)::[] }
+    IDENT COLON expr COMMA wallet_assets    { ($1,$3)::$5 }
+    | IDENT COLON expr { ($1,$3)::[] }
+;
+
+transac:
+    expr OF IDENT WITH IDENT THROUGH IDENT  { EBuy($1, $3, $5, $7) }
+    | expr OF IDENT WITH IDENT              { EBuy($1, $3, $5, $5) }
 ;
 
 

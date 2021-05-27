@@ -1,5 +1,6 @@
 
-val r = 1;
 
-val x = if false then r else "hehe";
-x;;
+val USD = asset;
+val w = wallet { USD: 10.0 };
+val r = if true then w else USD;
+r;;

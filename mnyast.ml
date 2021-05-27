@@ -2,13 +2,13 @@ type expr =
   | EFloat of float 
   | EBool of bool
   | EString of string
-  | EAsset of string * expr * string * expr
+  | EAsset of expr * string
   (* | EExch of EAsset * EAsset  *)
-  | EWallet of string * ((string * float) list) * expr
+  | EWallet of (string * expr) list
   | EIdent of string
   | EAff of string * expr * expr
   | EIf of (expr * expr * expr)
-  | EBuy of string * expr * string * string * string * expr
+  | EBuy of expr * string * string * string
   | EBinop of (string * expr * expr)
   | EMonop of string * expr
   | EFun of (string * expr)
@@ -23,13 +23,13 @@ let rec print oc = function
   | EBool false -> Printf.fprintf oc "false"
   | EString s -> Printf.fprintf oc "\"%s\"" s
   | EAsset _ -> Printf.printf "asset"
-  | EWallet (s,l,n) -> Printf.printf "wallet"
+  | EWallet _ -> Printf.printf "wallet"
   | EIdent s -> Printf.fprintf oc "%s" s 
   | EAff (x, e, expr) -> 
         Printf.fprintf oc "(%a = %a)" print (EIdent x) print e
   | EIf (test,e1,e2) -> 
       Printf.fprintf oc "(if %a then %a else %a)"  print test print e1 print e2
-  | EBuy (t, amnt1, a1, wallet, a2, next) ->
+  | EBuy (amnt1, a1, wallet, a2) ->
       Printf.fprintf oc "(buy %a %a with %a through %a)" print (amnt1) print (EString a1) print (EString wallet) print (EString a2)
   | EBinop (op, e1, e2) -> 
       Printf.fprintf oc "(%a %s %a)" print e1 op print e2
