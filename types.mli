@@ -6,6 +6,7 @@ type ty =
   | TString
   | TAsset
   | TWallet
+  | TTransac
   | TFun of (ty * ty)
   | TVar of var_name
   | TPair of (ty * ty)

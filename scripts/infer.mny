@@ -1,4 +1,4 @@
-val USD = asset;
-val w = wallet { USD: 10.0 };
-val r = if true then w else USD;
+set USD = asset;
+set w = wallet { USD: 10.0 };
+set r = if true then w else USD;
 r;;

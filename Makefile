@@ -3,7 +3,7 @@ CAMLDEP=$(BINDIR)ocamldep
 CAMLLEX=$(BINDIR)ocamllex
 CAMLYACC=$(BINDIR)ocamlyacc
 # COMPFLAGS=-w A-4-6-9 -warn-error A -g
-COMPFLAGS=
+COMPFLAGS= -w -8
 
 EXEC = mnyloop
 SOURCES = mnyast.ml mnysem.ml types.ml subst.ml unify.ml infer.ml mnyloop.ml 

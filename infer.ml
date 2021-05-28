@@ -12,6 +12,7 @@ let rec type_expr env = function
   | Mnyast.EString _ -> (Types.TString, Subst.empty)
   | Mnyast.EWallet _ -> (Types.TWallet, Subst.empty)
   | Mnyast.EAsset _ -> (Types.TAsset, Subst.empty)
+  | Mnyast.EBuy _ -> (Types.TTransac, Subst.empty)
   | Mnyast.EIdent v -> (Types.instance (find_id_sch v env), Subst.empty)
   | Mnyast.EIf (cond_e, then_e, else_e) -> (
       (* Typage de la condition. *)
@@ -45,7 +46,9 @@ let rec type_expr env = function
       let new_env' = (v_name, (Types.generalize e1_ty new_env)) :: new_env in
       let (e2_ty, e2_sub) = type_expr new_env' e2 in
       (e2_ty, Subst.compose e2_sub e1_sub)
-  (* | Pcfast.Letrec (v_name, e1, e2) ->
+  | Mnyast.EDot (e, ident) -> (Types.TFloat, Subst.empty)
+
+  (* | Mnyast.EFunrec (v_name, e1, e2) ->
       (* Nouvelle variable qui deviendra le type de la fonction apr�s l'avoir
          unifi� avec le type calcul� par l'inf�rence pour le corps de la
          d�finition. *)
@@ -64,6 +67,7 @@ let rec type_expr env = function
       let new_env3 = (v_name, (Types.generalize e1_ty' new_env2)) :: new_env2 in
       let (e2_ty, e2_sub) = type_expr new_env3 e2 in
       (e2_ty, Subst.compose e2_sub (Subst.compose u e1_sub)) *)
+  | Mnyast.EFunrec (_,_,_,_) -> (Types.TFloat, Subst.empty)  (* Changer ça *)
   | Mnyast.EApp (e1, e2) ->
       let (e1_ty, e1_sub) = type_expr env e1 in
       let (e2_ty, e2_sub) = type_expr (Subst.subst_env e1_sub env) e2 in
@@ -83,7 +87,7 @@ let rec type_expr env = function
    *)
   | Mnyast.EBinop (o_name, e1, e2) -> (
       match o_name with
-      | "+" | "-" | "/" | "*" ->
+      | "+" | "-" | "/" | "*" | "||" | "&&" | "^" ->
           (* Typage des 2 op�randes. *)
           let (e1_ty, e1_sub) = type_expr env e1 in
           let (e2_ty, e2_sub) = type_expr (Subst.subst_env e1_sub env) e2 in
@@ -96,7 +100,7 @@ let rec type_expr env = function
           (* On retourne int. *)
           (TFloat,
            (Subst.compose u' (Subst.compose u (Subst.compose e2_sub e1_sub))))
-      | "=" | ">" | ">=" | "<" | "<=" ->
+      | "=" | ">" | ">=" | "<" | "<=" | "!=" ->
           (* Op�rateurs polymorphes. La seule contrainte est que les deux
              op�randes aient le m�me type. *)
           let (e1_ty, e1_sub) = type_expr env e1 in
@@ -108,7 +112,7 @@ let rec type_expr env = function
      )
   | Mnyast.EMonop (o_name, e) -> (
       match o_name with
-      | "-" ->
+      | "-" | "%" | "!" ->
           (* Typage de l'op�rande. *)
           let (e1_ty, e1_sub) = type_expr env e in
           (* On force ce type � �tre int. *)

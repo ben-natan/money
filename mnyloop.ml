@@ -28,14 +28,14 @@ let main () =
         try 
             let _ = Printf.printf "> %!" in
             let e = Mnyparse.main Mnylex.lex lexbuf in 
-            let _ = Printf.printf "Recognized: " in
+            (* let _ = Printf.printf "Recognized: " in
             let _ = Mnyast.print stdout e in 
-            let _ = Printf.fprintf stdout " =\n%!" in
-            (* let _ = Types.print stdout (fst (Infer.type_expr Types.init_env e)) in *)
+            let _ = Printf.fprintf stdout " =\n%!" in *)
+            let _ = Infer.type_expr Types.init_env e in
             let _ = Mnysem.printval (Mnysem.eval e) in
             Printf.printf "\n%!"
         with 
-            Mnylex.Eoi -> Printf.printf "Bye bye. \n%!" ; exit 0
+            Mnylex.Eoi -> exit 0
             | Failure msg -> Printf.printf "Erreur: %s\n\n" msg
             | Parsing.Parse_error -> Printf.printf "Erreur de syntaxe\n\n"
             | Unify.Cycle (v_name, ty) ->

@@ -9,7 +9,7 @@ exception Conflict of (Types.ty * Types.ty) ;;
    On recherche donc s'il n'y a pas la variable v dans le type pass� en
    param�tre. *)
 let rec occur_check v_name = function
-  | Types.TFloat | Types.TBool | Types.TString -> false
+  | Types.TFloat | Types.TBool | Types.TString | Types.TAsset | Types.TWallet | Types.TTransac -> false
   | Types.TFun (t1, t2) | Types.TPair (t1, t2) ->
       (occur_check v_name t1) || (occur_check v_name t2)
   | Types.TVar n -> v_name = n
@@ -24,7 +24,9 @@ let rec unify t1 t2 =
   match (t1, t2) with
   | (Types.TFloat, Types.TFloat) | (Types.TBool, Types.TBool)
   | (Types.TString, Types.TString) | (Types.TAsset, Types.TAsset)
-  | (Types.TWallet, Types.TWallet) -> Subst.empty
+  | (Types.TWallet, Types.TWallet) | (Types.TWallet, Types.TFloat)
+  | (Types.TFloat, Types.TWallet) | (Types.TTransac, Types.TTransac) 
+  -> Subst.empty
   | (Types.TFun (a, b), Types.TFun (c, d)) ->
       let s1 = (unify a c) in
       (* s1 est la substitution n�cessaire pour que a et c collent. *)
