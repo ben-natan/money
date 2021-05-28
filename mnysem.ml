@@ -10,6 +10,7 @@ type mnyval =
   | Transacval of {_success: bool; _from: string; _to: string; _amount: float; _price: float; _wallet: string}
   (* | Transacval of (string * ) *)
   | Funval of { param: string; body: expr; env: environnement }
+  | Funrecval of { fname: string; param: string; body: expr; env: environnement}
 
 and environnement = (string * mnyval) list
 ;;
@@ -46,7 +47,7 @@ let rec add_to_asset a new_a v rho = match rho with
 
 let rec find_and_add x e l = match l with
 |(u,v)::q -> if u = x then (u,v+.e)::q else (u,v)::(find_and_add x e q)
-|[] -> raise (Failure "Not found")
+|[] -> [(x, e)]
 ;;
 
 let rec add_to_wallet w x v rho = match rho with
@@ -146,7 +147,6 @@ let rec eval e rho = match e with
     let new_rho = extend rho x v_end in 
     eval next new_rho
 
-
   | EAsset (e, i) -> (
     match eval e rho with
       | Floatval n -> Assetval [(n, i)]
@@ -160,8 +160,6 @@ let rec eval e rho = match e with
       | Boolval b -> eval (if b then e1 else e2) rho 
       | _ -> raise (Failure "Testing a non boolean condition")
     )
-
-  
 
   | EDot (a, x) -> (
     let a_end = eval a rho in
@@ -180,45 +178,16 @@ let rec eval e rho = match e with
     )
   )
 
-  (* | EBuy (amnt_a1 ,a1, w, a2) -> (
-    (* On cherche wallet, et on crée la transacval
-       puis on redonne la main *)
-    match eval amnt_a1 rho with
-      | Floatval amnt_a1_end -> (
-          match lookup w rho with 
-          | Walletval wallet ->
-              (
-              match lookup a2 rho with 
-                | Assetval asset2 -> (
-                    let amnt_a2 = get_wallet_val wallet a2 in
-                    let val_a2 = get_asset_val asset2 a1 in
-                    if (amnt_a2 *. val_a2 >= amnt_a1_end) then
-                      (* Transaction réussie *)
-                      let new_rho = add_to_wallet w a1 amnt_a1_end rho in
-                      let almost_done_rho = add_to_wallet w a2 (-1. *. amnt_a1_end /. val_a2) new_rho in
-                      let final_rho = extend almost_done_rho t (Transacval {_success= true; _from= a2; _to= a1; _amount= amnt_a1_end; _price= amnt_a2}) in
-                      eval next final_rho
-                    else
-                      (* Transaction pas réussie *)
-                      let final_rho = extend rho t (Transacval {_success= false; _from= a2; _to= a1; _amount= amnt_a1_end; _price= amnt_a2}) in
-                      eval next final_rho
-                    )
-                | _ -> raise (Failure "Asset 2 non reconnu")
-              )
-          | _ -> raise (Failure "Wallet non reconnu") 
-        )
-      | _ -> raise (Failure "Amount not int")
-    ) *)
   | EBuy (b_amnt, buy_asst, wallet, thr_asst) -> (
     match eval b_amnt rho with
     | Floatval buy_amount -> 
       (* Ici on forme la transaction avec un lookup pour voir si assez d'argent *)
       let Walletval(_wallet) = lookup wallet rho in
       let Assetval(_buy_asst) = lookup buy_asst rho in
-      let _wallet_amnt = get_wallet_val _wallet buy_asst in
+      let _wallet_amnt = get_wallet_val _wallet thr_asst in
       let _wallet_value = get_asset_val _buy_asst thr_asst in
-      Transacval { _success = if _wallet_amnt *. _wallet_value > buy_amount then true else false;
-                   _from = thr_asst; _to = buy_asst; _amount = buy_amount; _price = buy_amount /. _wallet_value;
+      Transacval { _success = if _wallet_amnt /. _wallet_value >= buy_amount then true else false;
+                   _from = thr_asst; _to = buy_asst; _amount = buy_amount; _price = buy_amount *. _wallet_value;
                    _wallet = wallet }
       (* Dans le extend on fait les modifs sur le wallet *)
     | _ -> raise (Failure "Buying amount must be float")
@@ -232,6 +201,7 @@ let rec eval e rho = match e with
           | "*" -> Floatval (n1 *. n2)
           | "/" -> Floatval (n1 /. n2)
           | "=" -> Boolval (n1 = n2)
+          | "!=" -> Boolval (n1<>n2)
           | "<" -> Boolval (n1 < n2)
           | "<=" -> Boolval (n1 <= n2) 
           | ">" -> Boolval (n1 > n2)
@@ -241,6 +211,10 @@ let rec eval e rho = match e with
       | (Boolval b1, Boolval b2) -> (
           match op with
           | "=" -> Boolval (b1=b2)
+          | "!=" -> Boolval (b1<>b2)
+          | "||" -> Boolval (b1 || b2)
+          | "^" -> Boolval (b1<>b2)
+          | "&&" -> Boolval (b1&b2)
           | _ -> raise ( Failure (Printf.sprintf "Opérateur sur booléen non reconnu: %s" op))
       )
       | (Stringval s1, Stringval s2) -> (
@@ -266,14 +240,52 @@ let rec eval e rho = match e with
       )
       | _ -> raise (Failure (Printf.sprintf "Opérandes invalides pour l'opérateur %s" op))
   )
+  | EMonop (op, e) -> (
+    match eval e rho with
+    | Floatval f -> (
+      match op with
+      | "+" -> Floatval f
+      | "-" -> Floatval (-.f)
+      | "%" -> Floatval (f/.100.)
+      | _ -> raise (Failure (Printf.sprintf "Opérande invalide pour l'opérateur %s" op))
+    )
+    | Boolval b -> (
+      match op with
+      | "!" -> if b then Boolval false else Boolval true
+      | _ -> raise (Failure (Printf.sprintf "Opérande invalide pour l'opérateur %s" op))
+    )
+    | Stringval s -> (
+      match op with
+      | _ -> raise (Failure (Printf.sprintf "Opérande invalide pour l'opérateur %s" op))
+    )
+    | Walletval w -> (
+      match op with
+      | "+" -> Walletval w
+      | "-" -> Walletval ( k_mult_wallet (-.1.) w)
+      | _ -> raise (Failure (Printf.sprintf "Opérande invalide pour l'opérateur %s" op))
+    )
+    | Assetval a -> (
+      match op with
+      | _ -> raise (Failure (Printf.sprintf "Opérande invalide pour l'opérateur %s" op))
+    )
+  )
   | EFun (p, e) -> Funval {param = p; body = e; env = rho}
-  | EApp (e1, e2) -> (
+  | EFunrec (f, x, e1, e2) -> 
+      let fval = Funrecval {fname = f; param = x; body = e; env = rho} in 
+      let new_rho = extend rho f fval in
+      eval e2 new_rho
+  | EApp (e1, e2) -> ( 
         match (eval e1 rho, eval e2 rho) with
         | (Funval {param; body; env}, v2) -> 
             let rho1 = extend env param v2 in 
             eval body rho1
+        | (Funrecval {fname; param; body; env} as fval, v2) ->
+            let rho1 = extend env fname fval in
+            let rho2 = extend rho1 param v2 in 
+            eval body rho2
         | _ -> raise (Failure "pas une fonction")
   )
+  
 
   
   

@@ -20,16 +20,14 @@ mnyloop.cmo : \
     mnysem.cmo \
     mnyparse.cmi \
     mnylex.cmo \
-    mnyast.cmo \
-    infer.cmo
+    mnyast.cmo
 mnyloop.cmx : \
     unify.cmx \
     types.cmx \
     mnysem.cmx \
     mnyparse.cmx \
     mnylex.cmx \
-    mnyast.cmx \
-    infer.cmx
+    mnyast.cmx
 mnyparse.cmo : \
     mnyast.cmo \
     mnyparse.cmi

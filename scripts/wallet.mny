@@ -1,0 +1,25 @@
+set USD = asset;
+set EUR = asset 1.2 of USD;
+set w1 = wallet { USD: 10, EUR: 20 };
+w1.EUR;;
+
+
+set USD = asset;
+set EUR = asset 1.2 of USD;
+set w1 = wallet { USD: 10, EUR: 20 };
+set w2 = wallet { GBP : 3, EUR: 5};
+w1 + w2;;
+
+
+set USD = asset;
+set EUR = asset 1.2 of USD;
+set w1 = wallet { USD: 10, EUR: 20 };
+set w2 = wallet { GBP : 3, EUR: 5};
+3*w2;;
+
+
+set USD = asset;
+set EUR = asset 1.2 of USD;
+set w1 = wallet { USD: 10, EUR: 20 };
+set w2 = wallet { GBP : 3, EUR: 5};
+w2 + wallet { EUR: 5 };;

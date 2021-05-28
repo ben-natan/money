@@ -1,0 +1,8 @@
+set USD = asset;
+set EUR = asset 1.2 of USD; 
+EUR.USD;;
+
+
+set USD = asset;
+set EUR = asset 1.2 of USD;
+USD.EUR;;

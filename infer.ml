@@ -10,9 +10,9 @@ let rec type_expr env = function
   | Mnyast.EFloat _ -> (Types.TFloat, Subst.empty)
   | Mnyast.EBool _ -> (Types.TBool, Subst.empty)
   | Mnyast.EString _ -> (Types.TString, Subst.empty)
-  | Mnyast.EWallet _ -> Printf.printf "EWallet\n" ; (Types.TWallet, Subst.empty)
-  | Mnyast.EAsset _ -> Printf.printf "EAsset\n";  (Types.TAsset, Subst.empty)
-  | Mnyast.EIdent v -> Printf.printf "EIndent\n" ; (Types.instance (find_id_sch v env), Subst.empty)
+  | Mnyast.EWallet _ -> (Types.TWallet, Subst.empty)
+  | Mnyast.EAsset _ -> (Types.TAsset, Subst.empty)
+  | Mnyast.EIdent v -> (Types.instance (find_id_sch v env), Subst.empty)
   | Mnyast.EIf (cond_e, then_e, else_e) -> (
       (* Typage de la condition. *)
       let (cond_ty, cond_subst) = type_expr env cond_e in
@@ -74,8 +74,8 @@ let rec type_expr env = function
       let u = Unify.unify (Types.TFun (e2_ty, tmp_ty)) e1_ty' in
       (Subst.apply tmp_ty u,
        (Subst.compose u (Subst.compose e2_sub e1_sub)))
-  (*
-  | Pcfast.Pair (e1, e2) ->
+  
+  (* | Mnyast.EPair (e1, e2) ->
       let (e1_ty, e1_sub) = type_expr env e1 in
       let (e2_ty, e2_sub) = type_expr (Subst.subst_env e1_sub env) e2 in
       let e1_ty' = Subst.apply e1_ty e2_sub in

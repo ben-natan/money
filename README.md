@@ -12,3 +12,5 @@
 - Opérateurs sur les assets
 
 - Messages d'erreur 
+ 
+- type fonction .EUR

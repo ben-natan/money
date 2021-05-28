@@ -1,2 +1,9 @@
-val x = 1;
-x;;
+set USD = asset;
+
+set w = wallet { EUR: 10 };
+set s = w + { USD: 6 };
+
+set EUR = asset 1.2 of USD; 
+
+set t = buy 1 of USD with s through EUR;
+t;;

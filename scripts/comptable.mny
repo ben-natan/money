@@ -1,0 +1,13 @@
+set budget_total = wallet { EUR: 8000, lingot_or: 4 };
+set budget_anniversaires = 30% * budget_total;
+
+set EUR = asset;
+set champagne = asset 15 of EUR;
+set gateau = asset 10 of EUR;
+
+set anniv_antoine = wallet { champagne: 4, gateau: 1 };
+
+set antoine_champ = buy anniv_antoine.champagne of champagne with budget_anniversaires through EUR;
+set antoine_gateau = buy anniv_antoine.gateau of gateau with budget_anniversaires through EUR;
+
+budget_anniversaires;;

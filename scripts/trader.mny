@@ -1,0 +1,7 @@
+set EUR = asset;
+set USD = asset 0.83 of EUR;
+
+set w = wallet { EUR: 100, USD: 100 };
+set maxUSD = w.EUR * EUR.USD;
+if EUR.USD > 0.8 then set t = buy maxUSD of USD with w through EUR; t 
+                 else set t = buy 0 of USD with w through EUR; t;;

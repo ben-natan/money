@@ -7,12 +7,13 @@ type expr =
   | EWallet of (string * expr) list
   | EIdent of string
   | EAff of string * expr * expr
-  | EIf of (expr * expr * expr)
+  | EIf of expr * expr * expr
   | EBuy of expr * string * string * string
-  | EBinop of (string * expr * expr)
+  | EBinop of string * expr * expr
   | EMonop of string * expr
-  | EFun of (string * expr)
-  | EDot of (expr * string)
+  | EFun of string * expr
+  | EFunrec of string * string * expr * expr
+  | EDot of expr * string
   | EApp of expr * expr
 ;;
 
@@ -37,10 +38,13 @@ let rec print oc = function
       Printf.fprintf oc "(%a %s)" print e op 
   | EFun (f, e) -> 
       Printf.printf "Fonction"
+  | EFunrec (f, p, e1, e2) ->
+      Printf.printf "Fonction rec"
   | EDot (a, x) -> 
       Printf.printf "Dot"
   | EApp (e1, e2) ->
       Printf.printf "App"
+
 
   (* | _ -> Printf.printf "salut" *)
 

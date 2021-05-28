@@ -65,18 +65,19 @@ rule lex = parse
         { FLOAT(float_of_string num)}
     | ['0'-'9']+ as num 
         { FLOAT(float_of_string num)}
-    | [ 'A'-'Z' 'a'-'z' '_' ] [ 'A'-'Z' 'a'-'z' '_' ]* as lxm
+    | [ 'A'-'Z' 'a'-'z' '_' ] [ 'A'-'Z' 'a'-'z' '_' '0'-'9']* as lxm
         { match lxm with 
             | "buy" -> BUY
             | "with" -> WITH
             | "through" -> THROUGH
-            | "val" -> VAL
+            | "set" -> SET
             | "fun" -> FUN 
             | "wallet" -> WALLET
             | "asset" -> ASSET
             | "transac" -> TRANSAC
             (* | "exch" -> EXCH *)
             | "of" -> OF
+            | "rec" -> REC
             | "if" -> IF
             | "then" -> THEN
             | "else" -> ELSE 
@@ -84,12 +85,18 @@ rule lex = parse
             | _ -> IDENT(lxm)
         }
     | '='    { EQUAL }
+    | "!="   { NOTEQUAL }
     | '>'    { GREATER }  | '<'    { SMALLER }
     | ">="   { GREATEREQUAL}  | "<="    {SMALLEREQUAL}
     | '+'    { PLUS }
     | '-'    { MINUS }
     | '*'    { MULT }
     | '/'    { DIV }
+    | '%'    { PERCENT }
+    | "||"   { OR }
+    | "&&"   { AND }
+    | '^'    { XOR }
+    | '!'    { EXCLAM }
     | '('    { LPAREN }
     | ')'    { RPAREN }
     | '{'    { LBRACK }

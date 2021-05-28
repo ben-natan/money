@@ -1,0 +1,12 @@
+set EUR = asset;
+set w = wallet { EUR: 55 };
+
+set tomate = asset 2.4 of EUR; 
+set t_tomates = buy 3 of tomate with w through EUR;
+set pomme = asset 1.2 of EUR;
+set t_pommes = buy 6 of pomme with w through EUR;
+set jus = asset 1.5 of EUR;
+set t_just = buy 2 of jus with w through EUR;
+set biscuit = asset 1.3 of EUR;
+set t_biscuit = buy 5 of biscuit with w through EUR;
+w;;

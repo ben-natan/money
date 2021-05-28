@@ -1,10 +1,5 @@
+set EUR = asset;
+set USD = asset 0.8 of EUR;
 
-asset EUR; 
-asset USD = 0.8 of EUR; 
-val EUR_balance = fun x -> x.EUR;
-wallet w = {EUR: 10, USD: 20};
-EUR_balance w;;
-
-
-
-
+set valueInEUR = fun x -> x.EUR;
+valueInEUR USD;;

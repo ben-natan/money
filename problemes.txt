@@ -1,2 +1,0 @@
-1. if y = 2 then val x = 1; val z = 2; else ___
- => val x = 1; val z = 2; n'est pas une expr parcequ'il n'y a rien apres le semicolon

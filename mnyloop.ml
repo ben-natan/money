@@ -31,7 +31,7 @@ let main () =
             let _ = Printf.printf "Recognized: " in
             let _ = Mnyast.print stdout e in 
             let _ = Printf.fprintf stdout " =\n%!" in
-            let _ = Types.print stdout (fst (Infer.type_expr Types.init_env e)) in
+            (* let _ = Types.print stdout (fst (Infer.type_expr Types.init_env e)) in *)
             let _ = Mnysem.printval (Mnysem.eval e) in
             Printf.printf "\n%!"
         with 
