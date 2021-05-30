@@ -8,7 +8,6 @@ type mnyval =
   (* mettre une asset val GEN de sorte qu'elles soient toutes définies à partir de celle là *)
   | Walletval of (string * float) list
   | Transacval of {_success: bool; _from: string; _to: string; _amount: float; _price: float; _wallet: string}
-  (* | Transacval of (string * ) *)
   | Funval of { param: string; body: expr; env: environnement }
   | Funrecval of { fname: string; param: string; body: expr; env: environnement}
 

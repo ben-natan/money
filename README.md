@@ -24,7 +24,7 @@ On a alors `EUR.USD` = 1.2 et `USD.EUR`= 0.83 .
 ## Wallet
 Des quantités d'assets sont contenues dans un wallet : </br>
 `set w1 = wallet { USD: 10, EUR: 20 }`</br>
-On peut accéder à une certaine quantité avec `w.EUR` . 
+On peut accéder à une certaine quantité avec `w1.EUR` . 
 
 Il est possible d'ajouter plusieurs wallets entre eux, ainsi que d'effectuer des multiplications par des constantes. </br>
 `set w2 = wallet { GBP: 3, EUR: 5 };` . </br>
@@ -36,11 +36,11 @@ Il est possible d'ajouter plusieurs wallets entre eux, ainsi que d'effectuer des
 À partir d'un wallet il est possible d'effectuer des transactions :  </br>
 `set t = buy 2 of USD with w1 through EUR;` </br>
 effectuera une transaction pour que l'on ait `w1 = { USD: 12, EUR: 18.33 }` et </br>
- `t = { success: true, from: EUR, to: USD, price: 1.67, amount: 2 }` </br>
+ `t = { success: true, from: EUR, to: USD, price: 1.67, amount: 2, wallet: w1 }` </br>
  Dans le cas où les fonds ne sont pas suffisants , la transaction n'est pas réalisée. </br>
  On peut accéder directement à un champ avec `t.success` par exemple.
 
-## Exemples & fonctionnement
+## Exemples d'utilisation
  - Pour la ménagère qui souhaite faire ses courses : 
 
 `set EUR = asset;` </br>
@@ -77,21 +77,8 @@ Avec un import automatique des assets de carrefour par exemple, elle peut tenir 
 `buy anniv_antoine.gateau of gateau with budget_anniversaire through EUR;`
 
 
+## Compilation
 
+`make depend`, `make` construisent l'interprêteur `mnyloop` qui s'utilise en mode interactif en lançant `./mnyloop` ou alors à partir d'un fichier avec `./mnyloop fichier.mny`. </br>
 
-## TODO
-- ~~Un Buy With Through est obligatoirement égal à une transac~~
-
-- ~~Changer les int en float (et le -n en 1/n)~~
-
-- ~~Boucle while (boucle for = boucle while intelligente)~~
-
-- ~~Régler les shift/reduce~~
-
-- ~~Fonctions~~
-
-- ~~Opérateurs sur les assets~~
-
-- ~~Messages d'erreur~~ 
- 
-- type fonction .EUR
+Des exemples de programmes `.mny` sont dans le dossier `/scripts` .
